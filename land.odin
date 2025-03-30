@@ -2,6 +2,8 @@ package main
 
 import "core:testing"
 import "core:math"
+import "core:slice"
+import "core:log"
 
 /*
   add to visited,
@@ -40,19 +42,45 @@ step :: proc (l: ^Land) {
         l.cells[l.start].path_cost = 0
         l.cells[l.start].heuristic = heuristic(l^, i_to_pos(l^, l.start))
 
-        buffer :[8]int
+        buffer :[4]int
         append(&l.border, ..find_neighbor(l^, l.start, &buffer))
 
         for b in l.border {
             l.cells[b].heuristic = heuristic(l^, i_to_pos(l^, b))
+            l.cells[b].path_cost = 1
         }
         
-    } else { 
-        //next := find_next_to_visit(l)
+    } else {
+        
+        next := find_next_to_visit(l^)
+
+        if l.end == next {
+            //end as been reached
+
+            
+        } else {
+
+            append(&l.visited, next)
+
+            neighbors :[4]int
+            find_neighbor(l^, next, &neighbors)
+
+            for index in neighbors {
+
+                // if already known, ignore
+                if slice.contains(l.border[:], index) ||
+                    slice.contains(l.visited[:], index) {
+                        continue
+                    }
+
+                // append next in border and compute cell properties
+                append(&l.border, index)
+                l.cells[index].heuristic = heuristic(l^, i_to_pos(l^, index))
+                l.cells[index].path_cost = l.cells[next].path_cost + 1
+                
+            }        
+        }
     }
-    
-    
-    
 }
 
 find_next_to_visit :: proc (land: Land) -> (result: int) {
@@ -61,31 +89,33 @@ find_next_to_visit :: proc (land: Land) -> (result: int) {
         result = 0
     } else {
         result = land.border[0]
+        minimum := max(int)
         for index in land.border[1:] {
-            
+            if slice.contains(land.visited[:], index) {
+                continue
+            }
+            s := score(land.cells[index])
+            if minimum > s {
+                minimum = s
+                result = index
+            }
         }
     }
     
     return 
 }
 
-find_neighbor :: proc (land: Land, index: int, buffer: ^[8]int) -> []int {
+score :: proc (c: Cell) -> int {
+    return c.heuristic
+}
+
+find_neighbor :: proc (land: Land, index: int, buffer: ^[4]int) -> []int {
     center := i_to_pos(land, index)
     count := 0
     
-    // top left
-    if center.x > 0 && center.y > 0 {
-        buffer[count] = pos_to_i(land, center + {-1,-1})
-        count += 1
-    }
     // top
     if center.y > 0 {
         buffer[count] = pos_to_i(land, center + {0,-1})
-        count += 1
-    }
-    // top right
-    if center.x < land.width - 1 && center.y > 0 {
-        buffer[count] = pos_to_i(land, center + {1,-1})
         count += 1
     }
     // left
@@ -98,23 +128,13 @@ find_neighbor :: proc (land: Land, index: int, buffer: ^[8]int) -> []int {
         buffer[count] = pos_to_i(land, center + {1,0})
         count += 1
     }
-    // bottom left
-    if center.x > 0 && center.y < land.height - 1 {
-        buffer[count] = pos_to_i(land, center + {-1,1})
-        count += 1
-    }
     // bottom
     if  center.y < land.height - 1 {
         buffer[count] = pos_to_i(land, center + {0,1})
         count += 1
     }
-    // bottom right
-    if center.x < land.width - 1 && center.y < land.height - 1 {
-        buffer[count] = pos_to_i(land, center + {1,1})
-        count += 1
-    }
 
-    return buffer[:min(count, 8)]
+    return buffer[:min(count, 4)]
 }
 
 pos_to_i :: #force_inline proc (land: Land, pos: [2]int) -> int {

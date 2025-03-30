@@ -147,11 +147,31 @@ draw_map :: proc(land: Land, map_top_left: [2]f32, map_size: [2]f32) {
                 )
             }
         }
-        
+
+        text_top_left := cell_top_left
+        font_height :f32 = 8
+        rl.DrawText(
+            fmt.ctprintf("id: %v", i),
+            i32(text_top_left.x + padding),
+            i32(text_top_left.y + padding),
+            2,
+            rl.BLACK
+        )
+
+        text_top_left.y += font_height
         rl.DrawText(
             fmt.ctprintf("h: %v", cell.heuristic),
-            i32(cell_top_left.x + padding),
-            i32(cell_top_left.y + padding),
+            i32(text_top_left.x + padding),
+            i32(text_top_left.y + padding),
+            2,
+            rl.BLACK
+        )
+
+        text_top_left.y += font_height
+        rl.DrawText(
+            fmt.ctprintf("p: %v", cell.path_cost),
+            i32(text_top_left.x + padding),
+            i32(text_top_left.y + padding),
             2,
             rl.BLACK
         )
