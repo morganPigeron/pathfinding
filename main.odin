@@ -3,6 +3,7 @@ package main
 import "core:fmt"
 import "core:log"
 import rl "vendor:raylib"
+import "core:math"
 
 main :: proc () {
 
@@ -26,12 +27,36 @@ main :: proc () {
     rl.SetTargetFPS(60)
 
     for !rl.WindowShouldClose() {
+
+        screen_size :[2]f32 = {
+            f32(rl.GetScreenWidth()),
+            f32(rl.GetScreenHeight()),
+        }
+
+        map_size := screen_size * 0.5
+        map_top_left :[2]f32 = {0,0}
+        map_top_left2 := map_top_left + {map_size.x,0}
+        map_top_left3 := map_top_left + {0,map_size.y}
+        map_top_left4 := map_top_left + map_size
+        
         {
             if rl.IsKeyPressed(.SPACE) {
                 step(&land)
                 step(&land2)
                 step(&land3)
                 step(&land4)
+            }
+
+            if rl.IsMouseButtonPressed(.LEFT) {
+                m := rl.GetMousePosition()
+                
+                if m.x < map_size.x && m.y < map_size.y {
+                    p :[2]int = {
+                        int(math.floor(m.x / (map_size.x / f32(land.width)))),
+                        int(math.floor(m.y / (map_size.y / f32(land.height)))),
+                    } 
+                    toggle_block(&land, pos_to_i(land, p))
+                }
             }
         }
         {
@@ -40,14 +65,6 @@ main :: proc () {
 
             rl.ClearBackground(rl.RAYWHITE)
 
-            screen_size :[2]f32 = {
-                f32(rl.GetScreenWidth()),
-                f32(rl.GetScreenHeight()),
-            }
-
-            map_size := screen_size * 0.5
-            map_top_left :[2]f32 = {0,0}
-
             draw_map(
                 land,
                 map_top_left,
@@ -55,17 +72,17 @@ main :: proc () {
             )
             draw_map(
                 land2,
-                map_top_left + {map_size.x,0},
+                map_top_left2,
                 map_size,
             )
             draw_map(
                 land3,
-                map_top_left + {0,map_size.y},
+                map_top_left3,
                 map_size,
             )
             draw_map(
                 land4,
-                map_top_left + map_size,
+                map_top_left4,
                 map_size,
             )
             
@@ -104,6 +121,10 @@ draw_map :: proc(land: Land, map_top_left: [2]f32, map_size: [2]f32) {
             cell_color = rl.GREEN
         } else if i == land.end {
             cell_color = rl.RED
+        } else if cell.blocked {
+            cell_color = rl.ORANGE
+        } else if cell.is_solution {
+            cell_color = rl.BLUE
         } else {
             cell_color = rl.WHITE
         } 

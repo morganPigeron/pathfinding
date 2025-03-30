@@ -21,6 +21,8 @@ import "core:log"
 Cell :: struct {
     heuristic: int,
     path_cost: int,
+    blocked:  bool,
+    is_solution: bool,
 }
 
 Land :: struct {
@@ -31,6 +33,8 @@ Land :: struct {
     end: int,
     visited: [dynamic]int,
     border: [dynamic]int,
+    found: bool,
+    solution: []int,
 }
 
 step :: proc (l: ^Land) {
@@ -56,7 +60,7 @@ step :: proc (l: ^Land) {
 
         if l.end == next {
             //end as been reached
-
+            finalize(l)
             
         } else {
 
@@ -83,6 +87,35 @@ step :: proc (l: ^Land) {
     }
 }
 
+finalize :: proc (l: ^Land) {
+    l.found = true
+    final := &l.cells[l.end]
+    
+    l.solution = make([]int, final.path_cost)
+    l.solution[final.path_cost - 1] = l.end
+    for i := final.path_cost - 2; i >= 0; i -= 1 {
+        //find neighbor with less path_cost
+        current := l.solution[i+1]
+        
+        neighbors :[4]int
+        find_neighbor(l^, current, &neighbors)
+
+        min_cost := i + 1     
+        for neigh_i in neighbors {
+            if !slice.contains(l.visited[:], neigh_i) { continue }
+            
+            if l.cells[neigh_i].path_cost <= min_cost {
+                l.solution[i] = neigh_i
+                min_cost = l.cells[neigh_i].path_cost
+            }
+        }
+    }
+
+    for cell in l.solution {
+        l.cells[cell].is_solution = true
+    }
+}
+
 find_next_to_visit :: proc (land: Land) -> (result: int) {
     
     if len(land.border) == 0 {
@@ -91,7 +124,7 @@ find_next_to_visit :: proc (land: Land) -> (result: int) {
         result = land.border[0]
         minimum := max(int)
         for index in land.border[1:] {
-            if slice.contains(land.visited[:], index) {
+            if slice.contains(land.visited[:], index) || land.cells[index].blocked {
                 continue
             }
             s := score(land.cells[index])
@@ -107,6 +140,10 @@ find_next_to_visit :: proc (land: Land) -> (result: int) {
 
 score :: proc (c: Cell) -> int {
     return c.heuristic
+}
+
+toggle_block :: proc (land: ^Land, index: int) {
+    land.cells[index].blocked = !land.cells[index].blocked
 }
 
 find_neighbor :: proc (land: Land, index: int, buffer: ^[4]int) -> []int {
