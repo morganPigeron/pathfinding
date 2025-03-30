@@ -12,15 +12,6 @@ main :: proc () {
     land := new_land(10,10,{1,1},{8,8})
     defer delete_land(&land)
 
-    land2 := new_land(10,10,{1,4},{8,4})
-    defer delete_land(&land2)
-
-    land3 := new_land(10,10,{4,1},{4,8})
-    defer delete_land(&land3)
-
-    land4 := new_land(10,10,{8,8},{1,1})
-    defer delete_land(&land4)
-
     rl.SetConfigFlags({.WINDOW_RESIZABLE});
     rl.InitWindow(800, 600, "A*")
     
@@ -33,18 +24,12 @@ main :: proc () {
             f32(rl.GetScreenHeight()),
         }
 
-        map_size := screen_size * 0.5
+        map_size := screen_size
         map_top_left :[2]f32 = {0,0}
-        map_top_left2 := map_top_left + {map_size.x,0}
-        map_top_left3 := map_top_left + {0,map_size.y}
-        map_top_left4 := map_top_left + map_size
         
         {
             if rl.IsKeyPressed(.SPACE) {
                 step(&land)
-                step(&land2)
-                step(&land3)
-                step(&land4)
             }
 
             if rl.IsMouseButtonPressed(.LEFT) {
@@ -68,21 +53,6 @@ main :: proc () {
             draw_map(
                 land,
                 map_top_left,
-                map_size,
-            )
-            draw_map(
-                land2,
-                map_top_left2,
-                map_size,
-            )
-            draw_map(
-                land3,
-                map_top_left3,
-                map_size,
-            )
-            draw_map(
-                land4,
-                map_top_left4,
                 map_size,
             )
             

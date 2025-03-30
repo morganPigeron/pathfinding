@@ -196,12 +196,9 @@ dist :: proc (a: [2]int, b: [2]int) -> [2]int {
 
 heuristic :: proc (land: Land, at_pos: [2]int) -> int {
     // must never overestimate heuristique to work
-    to_end     := dist(at_pos, i_to_pos(land ,land.end  ))
-    from_start := dist(at_pos, i_to_pos(land, land.start))
-    
-    total := to_end + from_start
+    to_end     := dist(at_pos, i_to_pos(land ,land.end))
+    total := to_end
     dist := total.x * total.x + total.y * total.y
-    
     return dist
 }
 
@@ -219,13 +216,14 @@ new_land :: proc(width: int, height: int, start: [2]int, end: [2]int) -> Land {
 
     land.start = pos_to_i(land, start)
     land.end = pos_to_i(land, end)
-    return land    
+    return land
 }
 
 delete_land :: proc(l: ^Land) {
     delete(l.visited)
     delete(l.border)
     delete(l.cells)
+    delete(l.solution)
 }
 
 @(test)
