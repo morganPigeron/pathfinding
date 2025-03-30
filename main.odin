@@ -107,12 +107,6 @@ draw_map :: proc(land: Land, map_top_left: [2]f32, map_size: [2]f32) {
         } else {
             cell_color = rl.WHITE
         } 
-
-        for index in land.border {
-            if index == i {
-                cell_color = rl.GRAY
-            }
-        }
         
         rl.DrawRectangleRec(
             {
@@ -124,6 +118,36 @@ draw_map :: proc(land: Land, map_top_left: [2]f32, map_size: [2]f32) {
             cell_color,
         )
 
+        for index in land.border {
+            if index == i {
+                rl.DrawRectangleLinesEx(
+                    {
+                        cell_top_left.x,
+                        cell_top_left.y,
+                        cell_size.x,
+                        cell_size.y,
+                    },
+                    2,
+                    rl.BLUE,
+                )
+            }
+        }
+        
+        for index in land.visited {
+            if index == i {
+                rl.DrawRectangleLinesEx(
+                    {
+                        cell_top_left.x,
+                        cell_top_left.y,
+                        cell_size.x,
+                        cell_size.y,
+                    },
+                    2,
+                    rl.PURPLE,
+                )
+            }
+        }
+        
         rl.DrawText(
             fmt.ctprintf("h: %v", cell.heuristic),
             i32(cell_top_left.x + padding),

@@ -42,8 +42,31 @@ step :: proc (l: ^Land) {
 
         buffer :[8]int
         append(&l.border, ..find_neighbor(l^, l.start, &buffer))
-    }  
+
+        for b in l.border {
+            l.cells[b].heuristic = heuristic(l^, i_to_pos(l^, b))
+        }
+        
+    } else { 
+        //next := find_next_to_visit(l)
+    }
     
+    
+    
+}
+
+find_next_to_visit :: proc (land: Land) -> (result: int) {
+    
+    if len(land.border) == 0 {
+        result = 0
+    } else {
+        result = land.border[0]
+        for index in land.border[1:] {
+            
+        }
+    }
+    
+    return 
 }
 
 find_neighbor :: proc (land: Land, index: int, buffer: ^[8]int) -> []int {
@@ -116,13 +139,13 @@ dist :: proc (a: [2]int, b: [2]int) -> [2]int {
 
 heuristic :: proc (land: Land, at_pos: [2]int) -> int {
     // must never overestimate heuristique to work
-    to_end := dist(at_pos, i_to_pos(land ,land.end))
-    from_start := dist(i_to_pos(land, land.start), at_pos)
+    to_end     := dist(at_pos, i_to_pos(land ,land.end  ))
+    from_start := dist(at_pos, i_to_pos(land, land.start))
     
     total := to_end + from_start
-    dist := math.sqrt(f32(total.x * total.x + total.y * total.y))
+    dist := total.x * total.x + total.y * total.y
     
-    return int(dist)
+    return dist
 }
 
 new_land :: proc(width: int, height: int, start: [2]int, end: [2]int) -> Land {
