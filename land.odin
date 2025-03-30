@@ -31,6 +31,69 @@ Land :: struct {
     border: [dynamic]int,
 }
 
+step :: proc (l: ^Land) {
+
+    // check initial state
+    if len(l.visited) == 0 && len(l.border) == 0 {
+        // set start as visited and found neighbors
+        append(&l.visited, l.start)
+        l.cells[l.start].path_cost = 0
+        l.cells[l.start].heuristic = heuristic(l^, i_to_pos(l^, l.start))
+
+        buffer :[8]int
+        append(&l.border, ..find_neighbor(l^, l.start, &buffer))
+    }  
+    
+}
+
+find_neighbor :: proc (land: Land, index: int, buffer: ^[8]int) -> []int {
+    center := i_to_pos(land, index)
+    count := 0
+    
+    // top left
+    if center.x > 0 && center.y > 0 {
+        buffer[count] = pos_to_i(land, center + {-1,-1})
+        count += 1
+    }
+    // top
+    if center.y > 0 {
+        buffer[count] = pos_to_i(land, center + {0,-1})
+        count += 1
+    }
+    // top right
+    if center.x < land.width - 1 && center.y > 0 {
+        buffer[count] = pos_to_i(land, center + {1,-1})
+        count += 1
+    }
+    // left
+    if center.x > 0 {
+        buffer[count] = pos_to_i(land, center + {-1,0})
+        count += 1
+    }
+    // right
+    if center.x < land.width - 1 {
+        buffer[count] = pos_to_i(land, center + {1,0})
+        count += 1
+    }
+    // bottom left
+    if center.x > 0 && center.y < land.height - 1 {
+        buffer[count] = pos_to_i(land, center + {-1,1})
+        count += 1
+    }
+    // bottom
+    if  center.y < land.height - 1 {
+        buffer[count] = pos_to_i(land, center + {0,1})
+        count += 1
+    }
+    // bottom right
+    if center.x < land.width - 1 && center.y < land.height - 1 {
+        buffer[count] = pos_to_i(land, center + {1,1})
+        count += 1
+    }
+
+    return buffer[:min(count, 8)]
+}
+
 pos_to_i :: #force_inline proc (land: Land, pos: [2]int) -> int {
     assert(pos.x * pos.y <= len(land.cells) - 1)
     return pos.x + pos.y * land.width
@@ -52,7 +115,7 @@ dist :: proc (a: [2]int, b: [2]int) -> [2]int {
 }
 
 heuristic :: proc (land: Land, at_pos: [2]int) -> int {
-    // must never overestimate
+    // must never overestimate heuristique to work
     to_end := dist(at_pos, i_to_pos(land ,land.end))
     from_start := dist(i_to_pos(land, land.start), at_pos)
     

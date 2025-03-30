@@ -10,27 +10,15 @@ main :: proc () {
     
     land := new_land(10,10,{1,1},{8,8})
     defer delete_land(&land)
-    for &cell, i in land.cells {
-        cell.heuristic = heuristic(land, i_to_pos(land, i))
-    }
 
     land2 := new_land(10,10,{1,4},{8,4})
     defer delete_land(&land2)
-    for &cell, i in land2.cells {
-        cell.heuristic = heuristic(land2, i_to_pos(land2, i))
-    }
 
     land3 := new_land(10,10,{4,1},{4,8})
     defer delete_land(&land3)
-    for &cell, i in land3.cells {
-        cell.heuristic = heuristic(land3, i_to_pos(land3, i))
-    }
 
     land4 := new_land(10,10,{8,8},{1,1})
     defer delete_land(&land4)
-    for &cell, i in land4.cells {
-        cell.heuristic = heuristic(land4, i_to_pos(land4, i))
-    }
 
     rl.SetConfigFlags({.WINDOW_RESIZABLE});
     rl.InitWindow(800, 600, "A*")
@@ -38,6 +26,14 @@ main :: proc () {
     rl.SetTargetFPS(60)
 
     for !rl.WindowShouldClose() {
+        {
+            if rl.IsKeyPressed(.SPACE) {
+                step(&land)
+                step(&land2)
+                step(&land3)
+                step(&land4)
+            }
+        }
         {
             rl.BeginDrawing()
             defer rl.EndDrawing()
@@ -111,6 +107,12 @@ draw_map :: proc(land: Land, map_top_left: [2]f32, map_size: [2]f32) {
         } else {
             cell_color = rl.WHITE
         } 
+
+        for index in land.border {
+            if index == i {
+                cell_color = rl.GRAY
+            }
+        }
         
         rl.DrawRectangleRec(
             {
