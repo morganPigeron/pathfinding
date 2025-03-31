@@ -67,9 +67,9 @@ step :: proc (l: ^Land) {
             append(&l.visited, next)
 
             neighbors :[4]int
-            find_neighbor(l^, next, &neighbors)
+            found := find_neighbor(l^, next, &neighbors)
 
-            for index in neighbors {
+            for index in found {
 
                 // if already known, ignore
                 if slice.contains(l.border[:], index) ||
@@ -91,27 +91,44 @@ finalize :: proc (l: ^Land) {
     l.found = true
     final := &l.cells[l.end]
     
-    l.solution = make([]int, final.path_cost)
-    l.solution[final.path_cost - 1] = l.end
-    for i := final.path_cost - 2; i >= 0; i -= 1 {
+    l.solution = make([]int, final.path_cost + 1)
+    l.solution[final.path_cost] = l.end
+    log.debugf("len solution %v", len(l.solution))
+    
+    propagate: for i := final.path_cost - 1; i >= 0; i -= 1 {
         //find neighbor with less path_cost
         current := l.solution[i+1]
         
         neighbors :[4]int
-        find_neighbor(l^, current, &neighbors)
+        found := find_neighbor(l^, current, &neighbors)
 
         min_cost := i + 1     
-        for neigh_i in neighbors {
-            if !slice.contains(l.visited[:], neigh_i) { continue }
+        for neigh_i in found {
+
+            //end condition
+            if l.start == neigh_i {
+                l.solution = l.solution[i:]
+                l.solution[0] = l.start
+                break propagate
+            }
+            
+            if (!slice.contains(l.visited[:], neigh_i) &&
+                !slice.contains(l.border[:], neigh_i)) ||
+                l.cells[neigh_i].blocked {
+                log.debugf("id %v is ignored", neigh_i)
+                continue
+            }
             
             if l.cells[neigh_i].path_cost <= min_cost {
                 l.solution[i] = neigh_i
                 min_cost = l.cells[neigh_i].path_cost
+                log.debugf("id %v is in solution, min cost: %v", neigh_i, min_cost)
             }
         }
     }
-
+    
     for cell in l.solution {
+        log.debugf("%v", cell)
         l.cells[cell].is_solution = true
     }
 }

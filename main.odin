@@ -28,10 +28,11 @@ main :: proc () {
         map_top_left :[2]f32 = {0,0}
         
         {
+            
             if rl.IsKeyPressed(.SPACE) {
                 step(&land)
             }
-
+            
             if rl.IsMouseButtonPressed(.LEFT) {
                 m := rl.GetMousePosition()
                 
